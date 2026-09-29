@@ -122,6 +122,18 @@
                 </optgroup>
             </select>
         </label>
+        <label>Max Interval: 
+            <select id="maxInterval">
+                <option value="18">No Limit</option>
+                <option value="1">2nd (Step)</option>
+                <option value="2">3rd</option>
+                <option value="3">4th</option>
+                <option value="4">5th</option>
+                <option value="5">6th</option>
+                <option value="6">7th</option>
+                <option value="7">Octave</option>
+            </select>
+        </label>
         <button id="toggleBtn">Start</button>
     </div>
 
@@ -150,11 +162,13 @@
         let isPlaying = false;
         let nextNoteTime = 0.0;
         let currentBeat = 1; 
+        let prevNoteIndex = -1;
         let timerID;
         const lookahead = 0.1;
 
         const uiTempo = document.getElementById('tempo');
         const uiMode = document.getElementById('scaleMode');
+        const uiMaxInterval = document.getElementById('maxInterval');
         const btn = document.getElementById('toggleBtn');
         const beatDisplay = document.getElementById('beatDisplay');
         const noteGroup = document.getElementById('noteGroup');
@@ -170,7 +184,6 @@
             { y: 20, step: 'B' }, { y: 10, step: 'C' }
         ];
 
-        // Maps keys to required accidentals assuming NO key signature on the staff
         const scaleMap = {
             'C_Maj': {},
             'G_Maj': { 'F': '♯' },
@@ -216,7 +229,6 @@
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             
-            // Fixed frequency, no accent
             osc.frequency.value = 800; 
             gain.gain.setValueAtTime(1, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
@@ -251,7 +263,26 @@
         }
 
         function generateNote() {
-            const noteObj = baseStaff[Math.floor(Math.random() * baseStaff.length)];
+            const maxInt = parseInt(uiMaxInterval.value);
+            let validIndices = [];
+            
+            for (let i = 0; i < baseStaff.length; i++) {
+                if (prevNoteIndex === -1) {
+                    validIndices.push(i);
+                } else {
+                    const diff = Math.abs(i - prevNoteIndex);
+                    if (diff > 0 && diff <= maxInt) {
+                        validIndices.push(i);
+                    }
+                }
+            }
+
+            if (validIndices.length === 0) validIndices = [Math.floor(Math.random() * baseStaff.length)];
+            
+            const nextIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
+            prevNoteIndex = nextIndex;
+            const noteObj = baseStaff[nextIndex];
+            
             const mode = uiMode.value;
             let accidental = '';
 
@@ -288,7 +319,7 @@
 
                 const secondsPerBeat = 60.0 / parseInt(uiTempo.value);
                 nextNoteTime += secondsPerBeat;
-                currentBeat = (currentBeat % 4) + 1; // Visual 4/4 cycle without accents
+                currentBeat = (currentBeat % 4) + 1; 
             }
             timerID = requestAnimationFrame(schedule);
         }
@@ -305,6 +336,7 @@
                 btn.classList.add('stop');
                 
                 currentBeat = 1;
+                prevNoteIndex = -1;
                 nextNoteTime = audioCtx.currentTime + 0.1;
                 schedule();
             } else {
