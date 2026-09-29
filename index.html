@@ -71,15 +71,6 @@
             justify-content: center;
             overflow-x: hidden;
         }
-        .beat-indicator {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 15px;
-            height: 30px;
-        }
-        .pulse {
-            color: #4CAF50;
-        }
     </style>
 </head>
 <body>
@@ -155,13 +146,10 @@
         </svg>
     </div>
 
-    <div class="beat-indicator" id="beatDisplay">-</div>
-
     <script>
         let audioCtx;
         let isPlaying = false;
         let nextNoteTime = 0.0;
-        let currentBeat = 1; 
         let prevNoteIndex = -1;
         let timerID;
         const lookahead = 0.1;
@@ -170,7 +158,6 @@
         const uiMode = document.getElementById('scaleMode');
         const uiMaxInterval = document.getElementById('maxInterval');
         const btn = document.getElementById('toggleBtn');
-        const beatDisplay = document.getElementById('beatDisplay');
         const noteGroup = document.getElementById('noteGroup');
         const noteHead = document.getElementById('noteHead');
         const ledgerGroup = document.getElementById('ledgerGroup');
@@ -310,16 +297,8 @@
                 playClick(nextNoteTime);
                 generateNote();
 
-                const displayBeat = currentBeat;
-                setTimeout(() => {
-                    beatDisplay.textContent = `Beat: ${displayBeat}`;
-                    beatDisplay.classList.add('pulse');
-                    setTimeout(() => beatDisplay.classList.remove('pulse'), 150);
-                }, Math.max(0, (nextNoteTime - audioCtx.currentTime) * 1000));
-
                 const secondsPerBeat = 60.0 / parseInt(uiTempo.value);
                 nextNoteTime += secondsPerBeat;
-                currentBeat = (currentBeat % 4) + 1; 
             }
             timerID = requestAnimationFrame(schedule);
         }
@@ -335,7 +314,6 @@
                 btn.textContent = 'Stop';
                 btn.classList.add('stop');
                 
-                currentBeat = 1;
                 prevNoteIndex = -1;
                 nextNoteTime = audioCtx.currentTime + 0.1;
                 schedule();
@@ -345,7 +323,6 @@
                 btn.classList.remove('stop');
                 cancelAnimationFrame(timerID);
                 noteGroup.style.display = 'none';
-                beatDisplay.textContent = '-';
             }
         });
     </script>
