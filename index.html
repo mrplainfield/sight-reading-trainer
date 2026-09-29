@@ -77,6 +77,14 @@
 
     <div class="controls">
         <label>Tempo (BPM): <input type="number" id="tempo" value="60" min="30" max="240"></label>
+        
+        <label>Clef: 
+            <select id="clefMode">
+                <option value="treble">Treble</option>
+                <option value="bass">Bass</option>
+            </select>
+        </label>
+
         <label>Key / Mode: 
             <select id="scaleMode">
                 <optgroup label="Modes">
@@ -136,7 +144,7 @@
             <line x1="10" y1="110" x2="290" y2="110" stroke="black" stroke-width="2"/>
             <line x1="10" y1="130" x2="290" y2="130" stroke="black" stroke-width="2"/>
             
-            <text x="20" y="115" font-size="80" font-family="serif" fill="black">&#119070;</text>
+            <text id="clefSymbol" x="20" y="115" font-size="80" font-family="serif" fill="black">&#119070;</text>
             
             <g id="noteGroup" style="display: none;">
                 <g id="ledgerGroup"></g>
@@ -155,21 +163,46 @@
         const lookahead = 0.1;
 
         const uiTempo = document.getElementById('tempo');
+        const uiClef = document.getElementById('clefMode');
         const uiMode = document.getElementById('scaleMode');
         const uiMaxInterval = document.getElementById('maxInterval');
         const btn = document.getElementById('toggleBtn');
+        const clefSymbol = document.getElementById('clefSymbol');
         const noteGroup = document.getElementById('noteGroup');
         const noteHead = document.getElementById('noteHead');
         const ledgerGroup = document.getElementById('ledgerGroup');
         const accidentalText = document.getElementById('accidentalText');
 
-        const baseStaff = [
+        const staffTreble = [
             { y: 180, step: 'G' }, { y: 170, step: 'A' }, { y: 160, step: 'B' }, { y: 150, step: 'C' },
             { y: 140, step: 'D' }, { y: 130, step: 'E' }, { y: 120, step: 'F' }, { y: 110, step: 'G' },
             { y: 100, step: 'A' }, { y: 90, step: 'B' }, { y: 80, step: 'C' }, { y: 70, step: 'D' },
             { y: 60, step: 'E' }, { y: 50, step: 'F' }, { y: 40, step: 'G' }, { y: 30, step: 'A' },
             { y: 20, step: 'B' }, { y: 10, step: 'C' }
         ];
+
+        const staffBass = [
+            { y: 180, step: 'B' }, { y: 170, step: 'C' }, { y: 160, step: 'D' }, { y: 150, step: 'E' },
+            { y: 140, step: 'F' }, { y: 130, step: 'G' }, { y: 120, step: 'A' }, { y: 110, step: 'B' },
+            { y: 100, step: 'C' }, { y: 90, step: 'D' }, { y: 80, step: 'E' }, { y: 70, step: 'F' },
+            { y: 60, step: 'G' }, { y: 50, step: 'A' }, { y: 40, step: 'B' }, { y: 30, step: 'C' },
+            { y: 20, step: 'D' }, { y: 10, step: 'E' }
+        ];
+
+        let baseStaff = staffTreble;
+
+        uiClef.addEventListener('change', () => {
+            if (uiClef.value === 'treble') {
+                clefSymbol.innerHTML = '&#119070;';
+                clefSymbol.setAttribute('y', '115');
+                baseStaff = staffTreble;
+            } else {
+                clefSymbol.innerHTML = '&#119074;';
+                clefSymbol.setAttribute('y', '105');
+                baseStaff = staffBass;
+            }
+            prevNoteIndex = -1;
+        });
 
         const scaleMap = {
             'C_Maj': {},
