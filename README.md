@@ -1,1 +1,1 @@
-# sight-reading-trainer
+Basic tool to train note identification.
